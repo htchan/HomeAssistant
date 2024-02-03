@@ -1,0 +1,53 @@
+version: '3'
+services:
+  home-assistant:
+    container_name: home_assistant
+    deploy:
+      resources:
+        limits:
+          memory: '250M'
+    hostname: home_assistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - ./home-assistant-config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    # privileged: true
+    ports:
+    - 8123:8123
+    networks:
+      - router
+  esphome:
+    container_name: esphome
+    image: esphome/esphome
+    volumes:
+      - ./esp-home-config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /dev:/dev
+    restart: always
+    # privileged: true
+    ports:
+    - 6052:6052
+  mqtt5:
+    image: eclipse-mosquitto
+    deploy:
+      resources:
+        limits:
+          memory: '20M'
+    hostname: mqtt5
+    ports:
+      - "1883:1883" #default mqtt port
+      - "9001:9001" #default mqtt port for websockets
+    volumes:
+      - ./mqtt5/config:/mosquitto/config:rw
+      - ./mqtt5/data:/mosquitto/data:rw
+      - ./mqtt5/log:/mosquitto/log:rw
+    networks:
+      - router
+
+
+networks:
+  router:
+    driver: bridge
+    name: router
+
